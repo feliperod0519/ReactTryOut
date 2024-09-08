@@ -1,0 +1,25 @@
+.card {
+    margin: 2rem auto;
+    padding: 2rem;
+    max-width: 30rem;
+    border-radius: 6px;
+    background: linear-gradient(#254041, #203031);
+    box-shadow: 0 0 8px rgba(0,0,0,0.3);
+  }
+  
+  .card h2 {
+    margin: 0;
+    font-family: 'Lato', sans-serif;
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #e5d9f1;
+  }
+  
+  .card p {
+    margin: 0.5rem 0;
+  }
+  
+  .card a {
+    color: #b3f4f6;
+    text-decoration: none;
+  }
