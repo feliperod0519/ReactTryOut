@@ -46,15 +46,18 @@ function App() {
       <main>
         <section id="core-concepts">
           <h2>Core Concepts</h2>
+          {/* {[<p>Hello</p>, <p>World</p>]} */}
           <ul>
-            <CoreConcept title={CORE_CONCEPTS[0].title}
+            {CORE_CONCEPTS.map((conceptItem)=><CoreConcept key={conceptItem.title} {...conceptItem} />)} //key is used to uniquely identify the elements, sometimes unnecessary
+            
+            {/* <CoreConcept title={CORE_CONCEPTS[0].title}
                        description={CORE_CONCEPTS[0].description}
                        image={CORE_CONCEPTS[0].image}/>
             <CoreConcept {...CORE_CONCEPTS[1]}/>
             <CoreConcept title={CORE_CONCEPTS[2].title}
                        description={CORE_CONCEPTS[2].description}
                        image={CORE_CONCEPTS[2].image}/>
-            <CoreConcept {...CORE_CONCEPTS[3]}/>
+            <CoreConcept {...CORE_CONCEPTS[3]}/> */}
           </ul>
         </section>
        <section id="cards">
@@ -71,10 +74,10 @@ function App() {
           <h2>Examples</h2>
           <menu>
             {/* <TabButton onSelected={handleTabClick}>Components</TabButton> */}
-            <TabButton onSelected={()=> handleTabClick('components')}>Components</TabButton>
-            <TabButton onSelected={()=> handleTabClick('jsx')}>JSX</TabButton>
-            <TabButton onSelected={()=> handleTabClick('props')}>Props</TabButton>
-            <TabButton onSelected={()=> handleTabClick('state')}>State</TabButton>
+            <TabButton isSelected={selectedTopic==='components'} onSelected={()=> handleTabClick('components')}>Components</TabButton>
+            <TabButton isSelected={selectedTopic==='jsx'} onSelected={()=> handleTabClick('jsx')}>JSX</TabButton>
+            <TabButton isSelected={selectedTopic==='props'} onSelected={()=> handleTabClick('props')}>Props</TabButton>
+            <TabButton isSelected={selectedTopic==='state'} onSelected={()=> handleTabClick('state')}>State</TabButton>
           </menu>
           {/* {selectedTopic} */}
           {/* {selectedTopic && <p>Please select topic.</p>}
