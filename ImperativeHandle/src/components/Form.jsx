@@ -1,6 +1,6 @@
 import {forwardRef,useImperativeHandle, useRef} from 'react';
 
-const NewForm = forwardRef(function Form(ref) {
+const NewForm = forwardRef(function Form({},ref) {
     const formHandle = useRef();
     useImperativeHandle(ref, () => {
         return{
@@ -11,7 +11,7 @@ const NewForm = forwardRef(function Form(ref) {
     });
 
     return (
-      <form ref={}>
+      <form ref={formHandle}>
         <p>
           <label>Name</label>
           <input type="text" />
