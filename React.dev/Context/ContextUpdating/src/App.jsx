@@ -1,20 +1,20 @@
 import UserContext from "./Store/userContext";
 import Layout from "./Components/Layout";
+import UserNameInput from "./Components/UserNameInput";
 
-import { useEffect, useState } from 'react';
+import { useState, useMemo } from 'react';
+import UserInfo from "./Components/UserInfo";
 
 function App() {
   
   console.log('Re-load');
   const [ userName, setUserName ] = useState('Minou the Cat');
   
-  const userNameValue = userName ;
+  const userNameValueContext = useMemo(
+    () => ({userName,setUserName})
+  ,[userName]) ;
 
-  useEffect(()=>{
-    setTimeout(()=>{
-      setUserName('felipeRod')
-    },5000)
-  },[])
+  const HandleOnChange = (e)=>{setUserName(e.target.value)}
 
   return (
     <div>
@@ -29,8 +29,14 @@ function App() {
       <main>
         <h2>Time to get started!</h2>
       </main>
-      <UserContext.Provider value={userNameValue}>
-        <Layout>Hello :)</Layout>
+      <UserContext.Provider value={userNameValueContext}>
+          {useMemo(()=>(
+            <>
+              <UserNameInput change={()=>HandleOnChange(event)} />
+              <br />
+              <UserInfo />
+            </>
+          ))}
       </UserContext.Provider>
     </div>
   );
