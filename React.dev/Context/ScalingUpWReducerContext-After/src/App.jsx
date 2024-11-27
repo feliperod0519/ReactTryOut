@@ -1,59 +1,38 @@
-import { currentTasks, currentId, addNewTask, newId, initialTasks } from './data/data'
-
-import TaskList from './Components/TaskList';
-import Task from './Components/Task';
-import AddTask from './Components/AddTask';
-
 import { useReducer } from 'react';
+import AddTask from './Components/AddTask'
+import TaskList from './Components/TaskList';
+import { TasksContext, TasksDispatchContext } from './store/TaskContext'
 
-function taskReducer(tasks,action){
-  switch (action.type){
-    case 'ADDED':{
-      return [...tasks,{ id:action.id, text:action.text, done:false }]
-    }
-    case 'CHANGED':{
-      return tasks.map(t=>{
-        if (t.id === action.task.id)
-          return action.task;
-        else
-          return t;
-      })
-    }
-    case 'DELETED':{
-      return task.filter(t=>t.id!=action.id)
-    }
-    default:
-      return [...tasks]
-  }
-}
+function App() { 
+  const [tasks, dispatch] = useReducer(
+    tasksReducer,
+    initialTasks
+  );
 
-function App() {
-  const [tasks,dispatcher] = useReducer(taskReducer,initialTasks);
-
-  function handleAddTask(text){
-    dispatcher({
-      type: 'ADDED',
-      id: newId(),
-      text
-    })
+  function handleAddTask(text) {
+    dispatch({
+      type: 'added',
+      id: nextId++,
+      text: text,
+    });
   }
 
-  function handleChangeTask(task){
-    dispatcher({
-      type: 'CHANGED',
-      task
-    })
+  function handleChangeTask(task) {
+    dispatch({
+      type: 'changed',
+      task: task
+    });
   }
 
-  function handleDeleteTask(taskId){
-    dispatcher({
-      type: 'DELETED',
+  function handleDeleteTask(taskId) {
+    dispatch({
+      type: 'deleted',
       id: taskId
-    })
+    });
   }
-  console.log('tasks:', tasks);
+
   return (
-    
+
     <div>
       <header>
         <img src="src/assets/react-core-concepts.png" alt="Stylized atom" />
@@ -65,14 +44,51 @@ function App() {
       </header>
       <main>
         <h2>Time to get started!</h2>
-        <h1>Day off in Kyoto</h1>
-        <AddTask placeHolder={'Add Task'} onAddTask={handleAddTask}/>
-        <TaskList taskList={tasks} onChangeTask={handleChangeTask} onDeleteTask={handleDeleteTask} /> 
       </main>
+      <TasksContext.Provider value={tasks}>
+        <TasksDispatchContext.Provider value={dispatch}>
+          <h1>Day off in Kyoto</h1>
+          <AddTask onAddTask={handleAddTask} />
+          <TaskList tasks={tasks} onChangeTask={handleChangeTask} onDeleteTask={handleDeleteTask} />
+        </TasksDispatchContext.Provider>
+      </TasksContext.Provider>
     </div>
+
   );
 }
 
-// AddTask({placeHolder,onAddTask,children})
+function tasksReducer(tasks, action) {
+  switch (action.type) {
+    case 'added': {
+      return [...tasks, {
+        id: action.id,
+        text: action.text,
+        done: false
+      }];
+    }
+    case 'changed': {
+      return tasks.map(t => {
+        if (t.id === action.task.id) {
+          return action.task;
+        } else {
+          return t;
+        }
+      });
+    }
+    case 'deleted': {
+      return tasks.filter(t => t.id !== action.id);
+    }
+    default: {
+      throw Error('Unknown action: ' + action.type);
+    }
+  }
+}
+
+let nextId = 3;
+const initialTasks = [
+  { id: 0, text: 'Philosopher’s Path', done: true },
+  { id: 1, text: 'Visit the temple', done: false },
+  { id: 2, text: 'Drink matcha', done: false }
+];
 
 export default App;
