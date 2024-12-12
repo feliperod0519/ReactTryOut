@@ -1,0 +1,1 @@
+export const initialState = { name: 'Minou the Cat', age: 2 }
