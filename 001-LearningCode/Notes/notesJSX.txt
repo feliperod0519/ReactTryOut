@@ -961,4 +961,320 @@ export default App;
 
 Side Effects
 
+Effects are "tasks" that don't impact the current component 
+render cycle.
 
+/c/AutoFormation/React/LearningCode/001-LearningCode/11 Side Effects useEffect/01-starting-project/01-starting-project
+
+navigator.geolocation.getCurrentPosition((position)=>{
+    const sortedPlaces = sortPlacesByDistance(
+      AVAILABLE_PLACES,
+      position.coords.latitude,
+      position.coords.longitude)
+  });
+
+This code is not related with the ender cycle
+
+Effects tend to fall into the infinite loop:
+
+1. const [availablePlaces, setAvailablePlaces] = useState([]);
+...
+2. navigator.geolocation.getCurrentPosition((position)=>{
+    const sortedPlaces = sortPlacesByDistance(
+      AVAILABLE_PLACES,
+      position.coords.latitude,
+      position.coords.longitude);
+    setAvailablePlaces(sortedPlaces);
+  });
+....
+<Places
+          title="Available Places"
+          places={availablePlaces}
+          onSelectPlace={handleSelectPlace}
+        />
+
+In the moment you update:  setAvailablePlaces(sortedPlaces); Then  app is reloaded
+
+then the navigateor make a new update and then it's updated forever
+
+Effects will execute after the the dependency array is updated.
+
+DO NOT OVERUSE --> Bad UC
+
+You don't need effects here:
+
+  function handleSelectPlace(id) {
+    setPickedPlaces((prevPickedPlaces) => {
+      if (prevPickedPlaces.some((place) => place.id === id)) {
+        return prevPickedPlaces;
+      }
+      const place = AVAILABLE_PLACES.find((place) => place.id === id);
+      return [place, ...prevPickedPlaces];
+    });
+
+    const storedIds = JSON.parse(localStorage.getItem('selectedPlaces')) || [];
+    if (storedIds.indexOf(id === -1)){
+      localStorage.setItem('selectedPlaces',JSON.stringify([id, ...storedIds]));
+    }
+  }
+
+Because it's executed inside a function hooked to a click.
+Moreover, effects have to be located at the root of the component.
+
+const storedIds = JSON.parse(localStorage.getItem('selectedPlaces') || []);
+const storedPlaces = storedIds.map((id)=>AVAILABLE_PLACES.find(place=>place.id === id));
+
+doesn't need to be in effects
+instead
+
+import { useEffect, useRef, useState } from 'react';
+
+import Places from './components/Places.jsx';
+import { AVAILABLE_PLACES } from './data.js';
+import Modal from './components/Modal.jsx';
+import DeleteConfirmation from './components/DeleteConfirmation.jsx';
+import logoImg from './assets/logo.png';
+
+import { sortPlacesByDistance } from './loc.js'
+
+const storedIds = JSON.parse(localStorage.getItem('selectedPlaces') || []);
+const storedPlaces = storedIds.map((id)=>AVAILABLE_PLACES.find(place=>place.id === id));
+
+
+function App() {
+  const modal = useRef();
+  const selectedPlace = useRef();
+  const [availablePlaces, setAvailablePlaces] = useState([]);
+  const [pickedPlaces, setPickedPlaces] = useState(storedPlaces);
+
+
+  useEffect(()=>{
+    navigator.geolocation.getCurrentPosition((position) => {
+      const sortedPlaces = sortPlacesByDistance(
+        AVAILABLE_PLACES,
+        position.coords.latitude,
+        position.coords.longitude
+      );
+      setAvailablePlaces(sortedPlaces);
+    });
+  },[]);
+
+  function handleStartRemovePlace(id) {
+    modal.current.open();
+    selectedPlace.current = id;
+  }
+
+  function handleStopRemovePlace() {
+    modal.current.close();
+  }
+
+  function handleSelectPlace(id) {
+    setPickedPlaces((prevPickedPlaces) => {
+      if (prevPickedPlaces.some((place) => place.id === id)) {
+        return prevPickedPlaces;
+      }
+      const place = AVAILABLE_PLACES.find((place) => place.id === id);
+      return [place, ...prevPickedPlaces];
+    });
+
+    const storedIds = JSON.parse(localStorage.getItem('selectedPlaces')) || [];
+    if (storedIds.indexOf(id === -1)){
+      localStorage.setItem('selectedPlaces',JSON.stringify([id, ...storedIds]));
+    }
+  }
+
+  function handleRemovePlace() {
+    setPickedPlaces((prevPickedPlaces) =>
+      prevPickedPlaces.filter((place) => place.id !== selectedPlace.current)
+    );
+    modal.current.close();
+
+    const storedIds = JSON.parse(localStorage.getItem('selectedPlaces')) || [];
+    localStorage.setItem('selectedPlaces',JSON.stringify(storedIds.filter((id)=>{
+      return id !== selectedPlace.current
+    })));
+    
+  }
+
+  return (
+    <>
+      <Modal ref={modal}>
+        <DeleteConfirmation
+          onCancel={handleStopRemovePlace}
+          onConfirm={handleRemovePlace}
+        />
+      </Modal>
+
+      <header>
+        <img src={logoImg} alt="Stylized globe" />
+        <h1>PlacePicker</h1>
+        <p>
+          Create your personal collection of places you would like to visit or
+          you have visited.
+        </p>
+      </header>
+      <main>
+        <Places
+          title="I'd like to visit ..."
+          fallbackText={'Select the places you would like to visit below.'}
+          places={pickedPlaces}
+          onSelectPlace={handleStartRemovePlace}
+        />
+        <Places
+          title="Available Places"
+          places={availablePlaces}
+          fallbackText="Sorting places by distance"
+          onSelectPlace={handleSelectPlace}
+        />
+      </main>
+    </>
+  );
+}
+
+export default App;
+
+-------------
+
+Reducers
+
+import "./styles.css";
+
+import { useReducer, useEffect, useRef } from "react";
+
+const initialState = {
+  isRunning: false,
+  time: 0
+};
+
+export default function Stopwatch() {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const idRef = useRef(0);
+
+  useEffect(() => {
+    if (!state.isRunning) {
+      return;
+    }
+    idRef.current = setInterval(() => dispatch({ type: "tick" }), 1000);
+    return () => {
+      clearInterval(idRef.current);
+      idRef.current = 0;
+    };
+  }, [state.isRunning]);
+
+  return (
+    <div className="stopwatch">
+      {state.time}s
+      <div>
+        <button onClick={() => dispatch({ type: "start" })}>Start</button>
+        <button onClick={() => dispatch({ type: "stop" })}>Stop</button>
+        <button onClick={() => dispatch({ type: "reset" })}>Reset</button>
+      </div>
+    </div>
+  );
+}
+
+function reducer(state, action) {
+  switch (action.type) {
+    case "start":
+      return { ...state, isRunning: true };
+    case "stop":
+      return { ...state, isRunning: false };
+    case "reset":
+      return { isRunning: false, time: 0 };
+    case "tick":
+      return { ...state, time: state.time + 1 };
+    default:
+      throw new Error();
+  }
+}
+
+http Request
+
+/c/AutoFormation/React/LearningCode/001-LearningCode/15 HTTP Requests/01-starting-project/01-starting-project
+
+import { useState } from 'react';
+import Places from './Places.jsx';
+import { useEffect } from 'react';
+
+export default function AvailablePlaces({ onSelectPlace }) {
+
+  const [availablePlaces, setAvailablePlaces] = useState([]);
+  const [isFetching,setIsFetching] = useState(false);
+  const [error, setError] = useState();
+
+  useEffect(()=>{
+    async function fetchPlaces(){
+      setIsFetching(true);
+      try{
+        const response = await fetch('http://localhost:3000/places');
+        const responseData = await response.json();
+        if (!response.ok) {
+          throw new Error('Failed to fetch places');
+        }
+        setAvailablePlaces(responseData.places);
+        
+      } catch (error) {
+        setError({
+          message:
+            error.message || 'Could not fetch places, please try again later.',
+        });
+      }
+      setIsFetching(false);      
+    }
+    fetchPlaces();
+    // fetch('http://localhost:3000/places').then((response)=>
+    // {
+    //   return response.json()
+    // }).then((responseData)=>{
+    //   setAvailablePlaces(responseData.places)
+    // })
+  },[]);
+  if (error) {
+    return <Error title="An error occurred!" message={error.message} />;
+  }
+
+  return (
+    <Places
+      title="Available Places"
+      places={availablePlaces}
+      isLoading = {isFetching}
+      fallbackText="No places available."
+      loadingText="Fetching place data..."
+      onSelectPlace={onSelectPlace}
+    />
+  );
+}
+.............
+
+export default function Places({
+  title,
+  places,
+  fallbackText,
+  onSelectPlace,
+  isLoading,
+  loadingText,
+}) {
+  console.log(places);
+  return (
+    <section className="places-category">
+      <h2>{title}</h2>
+      {isLoading && <p className="fallback-text">{loadingText}</p>}
+      {!isLoading && places.length === 0 && <p className="fallback-text">{fallbackText}</p>}
+      {!isLoading && places.length > 0 && (
+        <ul className="places">
+          {places.map((place) => (
+            <li key={place.id} className="place-item">
+              <button onClick={() => onSelectPlace(place)}>
+                <img
+                  src={`http://localhost:3000/${place.image.src}`}
+                  alt={place.image.alt}
+                />
+                <h3>{place.title}</h3>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
