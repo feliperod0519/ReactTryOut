@@ -1286,4 +1286,6 @@ Rules of hooks
 Rule #1: Hooks can't be called outside component functions
 Rule #2: Only call hooks on the top level. Not inside an if for instance.
 
+Rule #1 Variation: Hooks can be called inside other hooks.
+
 
