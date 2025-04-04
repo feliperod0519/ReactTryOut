@@ -1278,3 +1278,12 @@ export default function Places({
     </section>
   );
 }
+
+Custom Hooks
+
+Rules of hooks
+
+Rule #1: Hooks can't be called outside component functions
+Rule #2: Only call hooks on the top level. Not inside an if for instance.
+
+
